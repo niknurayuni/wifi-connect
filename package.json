@@ -1,0 +1,33 @@
+{
+  "name": "wifi-connect",
+  "version": "1.0.0",
+  "description": "Wi-Fi QR Code Generator with printable Guest Card",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "node --experimental-strip-types src/index.ts",
+    "dev": "node --watch --experimental-strip-types src/index.ts",
+    "test": "node --test --experimental-strip-types test/api.test.ts"
+  },
+  "keywords": [
+    "wifi",
+    "qr-code",
+    "guest-card",
+    "express",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "@types/qrcode": "^1.5.5",
+    "supertest": "^7.0.0",
+    "@types/supertest": "^6.0.2"
+  }
+}
+

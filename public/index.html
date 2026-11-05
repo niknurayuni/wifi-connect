@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WiFi Connect — Elegant Wi-Fi QR Code & Guest Card Generator</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              200: '#fecdd3',
+              300: '#fda4af',
+              400: '#fb7185',
+              500: '#f43f5e',
+              600: '#e11d48',
+              700: '#be123c',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'Consolas', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Glassmorphism utility classes */
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 10px 30px -5px rgba(244, 63, 94, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(254, 205, 211, 0.6);
+      box-shadow: 0 20px 40px -15px rgba(225, 29, 72, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.8);
+    }
+
+    .glass-input {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(254, 205, 211, 0.7);
+      transition: all 0.2s ease-in-out;
+    }
+    .glass-input:focus {
+      background: rgba(255, 255, 255, 0.98);
+      border-color: #fb7185;
+      box-shadow: 0 0 0 3px rgba(251, 113, 133, 0.2);
+      outline: none;
+    }
+
+    /* Print styling: isolates and styles the Guest Card exclusively */
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #1e293b !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-area {
+        display: block !important;
+        margin: 20mm auto !important;
+        max-width: 100mm !important;
+        box-shadow: none !important;
+        border: 2px solid #fda4af !important;
+        border-radius: 16px !important;
+        background: #ffffff !important;
+        page-break-inside: avoid !important;
+      }
+      .print-area * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50/70 to-white text-slate-800 antialiased relative overflow-x-hidden selection:bg-rose-200 selection:text-rose-900">
+
+  <!-- Ambient glowing decorative background orbs (glassmorphism backdrop) -->
+  <div class="no-print fixed inset-0 overflow-hidden pointer-events-none -z-10">
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-rose-200/50 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/4 -right-24 w-80 h-80 bg-pink-200/40 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-20 left-1/3 w-96 h-96 bg-rose-100/60 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="min-h-screen flex flex-col justify-between p-4 sm:p-6 lg:p-8">
+    
+    <!-- Top Header -->
+    <header class="no-print max-w-4xl mx-auto w-full pt-4 pb-6 text-center">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/70 border border-pink-200/60 shadow-sm text-xs font-medium text-rose-600 mb-3 backdrop-blur-md">
+        <svg class="w-3.5 h-3.5 text-rose-500 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+        </svg>
+        <span>100% Private • In-Memory Generation • No Storage</span>
+      </div>
+
+      <div class="flex items-center justify-center gap-3">
+        <div class="p-2.5 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 text-white shadow-md shadow-rose-300/40">
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+          </svg>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 bg-clip-text text-transparent">
+          WiFi Connect
+        </h1>
+      </div>
+
+      <p class="mt-2 text-sm sm:text-base text-slate-600 max-w-md mx-auto">
+        Create a beautiful, printable Wi-Fi card so your guests, customers, and visitors can connect with a single scan.
+      </p>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-4xl mx-auto w-full my-auto">
+      
+      <!-- Error Message Banner -->
+      <div id="errorBanner" class="no-print hidden max-w-lg mx-auto mb-6 p-4 rounded-2xl bg-red-50/90 border border-red-200 text-red-700 text-sm shadow-sm flex items-start gap-3 backdrop-blur-md transition-all animate-shake">
+        <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <div class="flex-1">
+          <p class="font-semibold text-red-800" id="errorTitle">Required Field Missing</p>
+          <p id="errorMessage" class="text-xs sm:text-sm mt-0.5 text-red-700"></p>
+        </div>
+        <button type="button" onclick="hideError()" class="text-red-400 hover:text-red-600">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- State 1: Input Form -->
+      <section id="formSection" class="no-print max-w-lg mx-auto">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8">
+          <div class="flex items-center justify-between pb-4 border-b border-pink-100 mb-6">
+            <div>
+              <h2 class="text-xl font-bold text-slate-800">Network Details</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Enter credentials to generate your QR card</p>
+            </div>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-rose-100 text-rose-700 border border-rose-200">
+              Step 1 of 2
+            </span>
+          </div>
+
+          <form id="wifiForm" novalidate class="space-y-5">
+            <!-- Wi-Fi Network Name (SSID) -->
+            <div>
+              <label for="ssid" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                <span>Network Name (SSID) <span class="text-rose-500">*</span></span>
+                <span class="text-xs font-normal text-slate-400">Required</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <svg class="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  id="ssid"
+                  name="ssid"
+                  placeholder="e.g. Blossom Cottage 5G"
+                  autocomplete="off"
+                  required
+                  class="glass-input block w-full pl-11 pr-4 py-3 rounded-2xl text-slate-800 placeholder-slate-400 text-sm font-medium focus:ring-2"
+                />
+              </div>
+              <p id="ssidFieldError" class="hidden text-xs text-red-600 mt-1.5 flex items-center gap-1">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Please enter your Wi-Fi network name.
+              </p>
+            </div>
+
+            <!-- Password -->
+            <div id="passwordContainer">
+              <label for="password" class="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                <span>Password</span>
+                <span class="text-xs font-normal text-slate-400">Case-sensitive</span>
+              </label>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <svg class="w-5 h-5 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Enter Wi-Fi password"
+                  autocomplete="new-password"
+                  class="glass-input block w-full pl-11 pr-11 py-3 rounded-2xl text-slate-800 placeholder-slate-400 text-sm font-mono focus:ring-2"
+                />
+                <button
+                  type="button"
+                  id="togglePasswordBtn"
+                  aria-label="Toggle password visibility"
+                  class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-rose-600 transition-colors"
+                >
+                  <!-- Eye Icon -->
+                  <svg id="eyeIcon" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <!-- Eye Off Icon (hidden initially) -->
+                  <svg id="eyeOffIcon" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Security Encryption Type -->
+            <div>
+              <label for="security" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                Security Encryption
+              </label>
+              <div class="relative">
+                <select
+                  id="security"
+                  name="security"
+                  class="glass-input block w-full px-4 py-3 rounded-2xl text-slate-800 text-sm font-medium focus:ring-2 appearance-none cursor-pointer"
+                >
+                  <option value="WPA" selected>WPA / WPA2 / WPA3 (Standard / Recommended)</option>
+                  <option value="WEP">WEP (Legacy)</option>
+                  <option value="nopass">None / Open (No password)</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hidden SSID checkbox -->
+            <div class="flex items-center gap-2 pt-1">
+              <input
+                type="checkbox"
+                id="hidden"
+                name="hidden"
+                class="w-4 h-4 rounded text-rose-600 focus:ring-rose-400 border-pink-300"
+              />
+              <label for="hidden" class="text-xs sm:text-sm text-slate-600 cursor-pointer select-none">
+                This is a hidden network (SSID is not broadcast)
+              </label>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="pt-2">
+              <button
+                type="submit"
+                id="submitBtn"
+                class="w-full py-3.5 px-6 rounded-2xl font-semibold text-white bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:from-rose-600 hover:via-pink-600 hover:to-rose-700 shadow-lg shadow-rose-300/40 hover:shadow-rose-300/60 transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
+              >
+                <span id="btnText">Generate Guest Card</span>
+                <svg id="btnSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <svg id="btnArrow" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- State 2: Printable Guest Card Display -->
+      <section id="cardSection" class="hidden max-w-xl mx-auto">
+        
+        <!-- Action Buttons (Print Card & Create New) -->
+        <div class="no-print flex flex-wrap items-center justify-between gap-3 mb-6 bg-white/70 backdrop-blur-md p-3 rounded-2xl border border-pink-200/60 shadow-sm">
+          <button
+            type="button"
+            id="createNewBtn"
+            class="px-4 py-2.5 rounded-xl font-medium text-slate-700 bg-white hover:bg-rose-50 border border-pink-200 hover:border-pink-300 transition-all text-sm flex items-center gap-2 shadow-sm"
+          >
+            <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>Create New</span>
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              id="downloadPngBtn"
+              class="px-4 py-2.5 rounded-xl font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-all text-sm flex items-center gap-2"
+              title="Download QR code image"
+            >
+              <svg class="w-4 h-4 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span>Save QR</span>
+            </button>
+
+            <button
+              type="button"
+              id="printBtn"
+              class="px-5 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 shadow-md shadow-rose-300/40 transition-all text-sm flex items-center gap-2 transform hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              <span>Print Card</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- The Printable Guest Card -->
+        <div id="printableCard" class="print-area glass-card rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden transition-all duration-300">
+          
+          <!-- Card Decorative Header Ribbon -->
+          <div class="flex items-center justify-between pb-4 border-b border-pink-100/80 mb-6">
+            <div class="flex items-center gap-2">
+              <div class="p-1.5 rounded-lg bg-rose-500 text-white">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                </svg>
+              </div>
+              <span class="text-xs font-bold uppercase tracking-wider text-rose-700">Guest Wi-Fi Access</span>
+            </div>
+            <span id="cardSecurityBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">
+              WPA2
+            </span>
+          </div>
+
+          <!-- Greeting Title -->
+          <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+            Welcome to our Wi-Fi
+          </h3>
+          <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-sm mx-auto">
+            Point your phone's camera at the QR code below to connect automatically.
+          </p>
+
+          <!-- High Resolution In-Memory QR Code Display -->
+          <div class="my-6 inline-block p-4 sm:p-5 rounded-2xl bg-white shadow-sm border border-pink-100 ring-4 ring-rose-50">
+            <img
+              id="qrCodeImage"
+              alt="Wi-Fi QR Code"
+              class="w-48 h-48 sm:w-56 sm:h-56 mx-auto object-contain select-none"
+            />
+          </div>
+
+          <!-- Credentials Breakdown (SSID & Password) -->
+          <div class="space-y-3 max-w-md mx-auto text-left">
+            <!-- Network Box -->
+            <div class="p-3.5 rounded-2xl bg-white/70 border border-pink-100 flex items-center justify-between shadow-2xs">
+              <div class="overflow-hidden">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Network (SSID)</span>
+                <span id="cardSsid" class="text-base sm:text-lg font-bold text-slate-800 truncate block"></span>
+              </div>
+              <button
+                type="button"
+                id="copySsidBtn"
+                class="no-print p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                title="Copy Network Name"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Password Box -->
+            <div id="cardPasswordRow" class="p-3.5 rounded-2xl bg-white/70 border border-pink-100 flex items-center justify-between shadow-2xs">
+              <div class="overflow-hidden">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">Password</span>
+                <span id="cardPassword" class="text-sm sm:text-base font-mono font-bold text-slate-800 break-all block"></span>
+              </div>
+              <button
+                type="button"
+                id="copyPasswordBtn"
+                class="no-print p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                title="Copy Password"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Card Footer / Instructions -->
+          <div class="mt-6 pt-4 border-t border-pink-100/80 flex items-center justify-center gap-2 text-xs text-slate-500">
+            <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span>Scan with iOS Camera or Android QR Scanner • No App Needed</span>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Page Footer -->
+    <footer class="no-print max-w-4xl mx-auto w-full pt-8 pb-3 text-center text-xs text-slate-400">
+      <p>
+        WiFi Connect &copy; 2026. Private &amp; secure: passwords and codes are processed entirely in memory.
+      </p>
+    </footer>
+
+  </div>
+
+  <!-- Toast Notification for Copy Actions -->
+  <div id="toast" class="no-print fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-xs sm:text-sm font-medium py-2 px-4 rounded-full shadow-lg backdrop-blur-md opacity-0 pointer-events-none transition-opacity duration-300 z-50 flex items-center gap-2">
+    <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+    <span id="toastMsg">Copied to clipboard</span>
+  </div>
+
+  <!-- Client-side Application Logic -->
+  <script>
+    // State references
+    const formSection = document.getElementById('formSection');
+    const cardSection = document.getElementById('cardSection');
+    const wifiForm = document.getElementById('wifiForm');
+    const ssidInput = document.getElementById('ssid');
+    const passwordInput = document.getElementById('password');
+    const securitySelect = document.getElementById('security');
+    const hiddenCheckbox = document.getElementById('hidden');
+    const passwordContainer = document.getElementById('passwordContainer');
+
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
+    const btnArrow = document.getElementById('btnArrow');
+
+    const errorBanner = document.getElementById('errorBanner');
+    const errorMessage = document.getElementById('errorMessage');
+    const ssidFieldError = document.getElementById('ssidFieldError');
+
+    const qrCodeImage = document.getElementById('qrCodeImage');
+    const cardSsid = document.getElementById('cardSsid');
+    const cardPassword = document.getElementById('cardPassword');
+    const cardPasswordRow = document.getElementById('cardPasswordRow');
+    const cardSecurityBadge = document.getElementById('cardSecurityBadge');
+
+    const printBtn = document.getElementById('printBtn');
+    const createNewBtn = document.getElementById('createNewBtn');
+    const downloadPngBtn = document.getElementById('downloadPngBtn');
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    const eyeIcon = document.getElementById('eyeIcon');
+    const eyeOffIcon = document.getElementById('eyeOffIcon');
+
+    let currentQrDataUrl = '';
+    let currentRawPassword = '';
+
+    // Error handling helpers
+    function showError(msg) {
+      errorMessage.textContent = msg;
+      errorBanner.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function hideError() {
+      errorBanner.classList.add('hidden');
+      ssidFieldError.classList.add('hidden');
+    }
+
+    // Toast helper
+    function showToast(text) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      toastMsg.textContent = text;
+      toast.classList.remove('opacity-0');
+      toast.classList.add('opacity-100');
+      setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2200);
+    }
+
+    // Toggle Password Visibility
+    togglePasswordBtn.addEventListener('click', () => {
+      const isPassword = passwordInput.getAttribute('type') === 'password';
+      passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+      eyeIcon.classList.toggle('hidden', isPassword);
+      eyeOffIcon.classList.toggle('hidden', !isPassword);
+    });
+
+    // Handle Security Selection change (disable password if 'nopass')
+    securitySelect.addEventListener('change', () => {
+      if (securitySelect.value === 'nopass') {
+        passwordContainer.classList.add('opacity-40', 'pointer-events-none');
+        passwordInput.value = '';
+      } else {
+        passwordContainer.classList.remove('opacity-40', 'pointer-events-none');
+      }
+    });
+
+    // Form submission
+    wifiForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const ssid = ssidInput.value.trim();
+      const password = passwordInput.value;
+      const security = securitySelect.value;
+      const hidden = hiddenCheckbox.checked;
+
+      // Client-side SSID validation
+      if (!ssid) {
+        ssidFieldError.classList.remove('hidden');
+        showError('Network name (SSID) is required. Please provide your Wi-Fi name.');
+        ssidInput.focus();
+        return;
+      }
+
+      // UI Loading state
+      btnText.textContent = 'Generating...';
+      btnSpinner.classList.remove('hidden');
+      btnArrow.classList.add('hidden');
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch('/api/generate-qr', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            ssid,
+            password,
+            security,
+            hidden
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.success) {
+          throw new Error(result.error || 'Failed to generate QR code.');
+        }
+
+        // Keep raw password temporarily in memory on the client for card display only
+        currentRawPassword = password;
+        currentQrDataUrl = result.data.qrCodeDataUrl;
+
+        // Populate printable Guest Card
+        qrCodeImage.src = currentQrDataUrl;
+        cardSsid.textContent = result.data.ssid;
+        
+        if (result.data.security === 'nopass' || !result.data.hasPassword) {
+          cardPasswordRow.classList.add('hidden');
+          cardSecurityBadge.textContent = 'Open Network';
+        } else {
+          cardPasswordRow.classList.remove('hidden');
+          cardPassword.textContent = currentRawPassword;
+          cardSecurityBadge.textContent = result.data.security === 'WEP' ? 'WEP' : 'WPA/WPA2';
+        }
+
+        // Switch view to Guest Card
+        formSection.classList.add('hidden');
+        cardSection.classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      } catch (err) {
+        showError(err.message || 'Network error occurred. Please check your connection.');
+      } finally {
+        btnText.textContent = 'Generate Guest Card';
+        btnSpinner.classList.add('hidden');
+        btnArrow.classList.remove('hidden');
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Print Card button
+    printBtn.addEventListener('click', () => {
+      window.print();
+    });
+
+    // Create New button (reset to form)
+    createNewBtn.addEventListener('click', () => {
+      cardSection.classList.add('hidden');
+      formSection.classList.remove('hidden');
+      hideError();
+      currentRawPassword = '';
+      currentQrDataUrl = '';
+      ssidInput.focus();
+    });
+
+    // Download PNG button
+    downloadPngBtn.addEventListener('click', () => {
+      if (!currentQrDataUrl) return;
+      const downloadLink = document.createElement('a');
+      const safeSsid = (cardSsid.textContent || 'wifi').replace(/[^a-z0-9_-]/gi, '_');
+      downloadLink.download = `wifi-card-${safeSsid}.png`;
+      downloadLink.href = currentQrDataUrl;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      showToast('QR code downloaded!');
+    });
+
+    // Copy SSID button
+    document.getElementById('copySsidBtn').addEventListener('click', async () => {
+      const ssid = cardSsid.textContent;
+      if (ssid) {
+        await navigator.clipboard.writeText(ssid);
+        showToast('Network SSID copied!');
+      }
+    });
+
+    // Copy Password button
+    document.getElementById('copyPasswordBtn').addEventListener('click', async () => {
+      if (currentRawPassword) {
+        await navigator.clipboard.writeText(currentRawPassword);
+        showToast('Password copied!');
+      }
+    });
+  </script>
+</body>
+</html>
+
